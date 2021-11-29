@@ -1,7 +1,5 @@
 function solvePuzzle(pieces) {
 
-    const ROW_SIZE = 10;
-
     let firstElem = pieces[0];
     let firstElemEdges = getFirstElemEdges(pieces, firstElem.edges);
 
@@ -10,14 +8,12 @@ function solvePuzzle(pieces) {
     //ушко нижней стороны первого пазла
     let firstElemBottomEdge = firstElemEdges[1];
 
-    //ушко правой стороны первого пазла следующего ряда
-    let firstElemOfNextRowParams = getRightEdgeOfFirstElemOfNextRow(pieces, firstElemBottomEdge);
+    let firstElemOfNextRowParams = getFirstElemOfNextRowParams(pieces, firstElemBottomEdge);
     let firstElemOfNextRowId = firstElemOfNextRowParams[0];
     let firstElemOfNextRowRightEdge = firstElemOfNextRowParams[1];
     let firstElemOfNextRowBottomEdge = firstElemOfNextRowParams[2];
 
     let resultArr = [];
-
 
     let oneRow = getOneRow(firstElem.id, firstElemRightEdge, pieces);
 
@@ -25,7 +21,6 @@ function solvePuzzle(pieces) {
         resultArr.push(i);
     }
 
-    let tempParams;
     let elemId = firstElemOfNextRowId;
     let elemRightEdge = firstElemOfNextRowRightEdge;
     let nextRow = [];
@@ -39,16 +34,14 @@ function solvePuzzle(pieces) {
             resultArr.push(i);
         }
 
-
-        if (counter > 7) {
+        if (counter === 8) {
             break;
         }
 
-        tempParams = getRightEdgeOfFirstElemOfNextRow(pieces, elemBottomEdge);
-        elemId = tempParams[0];
-        elemRightEdge = tempParams[1];
-
-        elemBottomEdge = tempParams[2];
+        firstElemOfNextRowParams = getFirstElemOfNextRowParams(pieces, elemBottomEdge);
+        elemId = firstElemOfNextRowParams[0];
+        elemRightEdge = firstElemOfNextRowParams[1];
+        elemBottomEdge = firstElemOfNextRowParams[2];
 
         counter++;
     } while (counter < 9) ;
@@ -61,47 +54,43 @@ function solvePuzzle(pieces) {
 function getOneRow(firstElemId, rightEdgeOfFirstElem, pieces) {
     let oneRowArr = [];
     oneRowArr.push(firstElemId);
+    let rightEdgeOfPrevElem = rightEdgeOfFirstElem;
 
-    let rowElementCounter = 0;
-    let rightEdge = rightEdgeOfFirstElem;
-    do {
-        let temp = getElemOfRow(pieces, rightEdge);
-        let nextElem = temp[0];
-        let currElemEdge = temp[1];
-        rightEdge = currElemEdge;
-        oneRowArr.push(nextElem);
-
-        rowElementCounter++;
-    } while (rowElementCounter < 9);
-
+    for (let i = 0; i < 9; i++) {
+        let elemOfRowParams = getElemOfRowParams(pieces, rightEdgeOfPrevElem);
+        let nextElemId = elemOfRowParams[0];
+        let currElemRightEdge = elemOfRowParams[1];
+        rightEdgeOfPrevElem = currElemRightEdge;
+        oneRowArr.push(nextElemId);
+    }
     return oneRowArr;
 }
 
-//возвращает ушки правой и нижней стороны первого пазла
+//возвращает ушки правой и нижней стороны первого элемента пазла
 function getFirstElemEdges(pieces, edges) {
-    let rightEdge;
-    let bottomEdge;
+    let firstElemRightEdge;
+    let firstElemBottomEdge;
     if (edges.top != null && edges.right != null) {
-        rightEdge = edges.top;
-        bottomEdge = edges.right;
+        firstElemRightEdge = edges.top;
+        firstElemBottomEdge = edges.right;
     }
     if (edges.right != null && edges.bottom != null) {
-        rightEdge = edges.right;
-        bottomEdge = edges.bottom;
+        firstElemRightEdge = edges.right;
+        firstElemBottomEdge = edges.bottom;
     }
     if (edges.bottom != null && edges.left != null) {
-        rightEdge = edges.bottom;
-        bottomEdge = edges.left;
+        firstElemRightEdge = edges.bottom;
+        firstElemBottomEdge = edges.left;
     }
     if (edges.left != null && edges.top != null) {
-        rightEdge = edges.left;
-        bottomEdge = edges.top;
+        firstElemRightEdge = edges.left;
+        firstElemBottomEdge = edges.top;
     }
-    return [rightEdge, bottomEdge];
+    return [firstElemRightEdge, firstElemBottomEdge];
 }
 
-//возвращает ушко правой стороны первого пазла следушего ряда по значению ушка нижней стороны текущего ряда
-function getRightEdgeOfFirstElemOfNextRow(pieces, bottomEdgeOfPreviousElem) {
+//возвращает параметры первого пазла следушего ряда по значению ушка нижней стороны текущего ряда
+function getFirstElemOfNextRowParams(pieces, bottomEdgeOfPreviousElem) {
     let elemId;
     let rightEdge;
     let bottomEdge;
@@ -147,45 +136,45 @@ function getRightEdgeOfFirstElemOfNextRow(pieces, bottomEdgeOfPreviousElem) {
 }
 
 //возвращает элемент строки по ушку предъидущего элемента
-function getElemOfRow(pieces, rightEdgeOfPrevElem) {
-    let elemId;
-    let rightEdgeOfCurrElem;
+function getElemOfRowParams(pieces, rightEdgeOfPrevElem) {
+    let currElemId;
+    let currElemRightEdge;
     for (let i = 0; i < pieces.length; i++) {
         if (pieces[i].edges.top != null) {
             if (rightEdgeOfPrevElem.edgeTypeId === pieces[i].edges.top.edgeTypeId
                 && rightEdgeOfPrevElem.type != pieces[i].edges.top.type) {
-                elemId = pieces[i].id;
-                rightEdgeOfCurrElem = pieces[i].edges.bottom;
+                currElemId = pieces[i].id;
+                currElemRightEdge = pieces[i].edges.bottom;
                 break;
             }
         }
         if (pieces[i].edges.right != null) {
             if (rightEdgeOfPrevElem.edgeTypeId === pieces[i].edges.right.edgeTypeId
                 && rightEdgeOfPrevElem.type != pieces[i].edges.right.type) {
-                elemId = pieces[i].id;
-                rightEdgeOfCurrElem = pieces[i].edges.left;
+                currElemId = pieces[i].id;
+                currElemRightEdge = pieces[i].edges.left;
                 break;
             }
         }
         if (pieces[i].edges.bottom != null) {
             if (rightEdgeOfPrevElem.edgeTypeId === pieces[i].edges.bottom.edgeTypeId
                 && rightEdgeOfPrevElem.type != pieces[i].edges.bottom.type) {
-                elemId = pieces[i].id;
-                rightEdgeOfCurrElem = pieces[i].edges.top;
+                currElemId = pieces[i].id;
+                currElemRightEdge = pieces[i].edges.top;
                 break;
             }
         }
         if (pieces[i].edges.left != null) {
             if (rightEdgeOfPrevElem.edgeTypeId === pieces[i].edges.left.edgeTypeId
                 && rightEdgeOfPrevElem.type != pieces[i].edges.left.type) {
-                elemId = pieces[i].id;
-                rightEdgeOfCurrElem = pieces[i].edges.right;
+                currElemId = pieces[i].id;
+                currElemRightEdge = pieces[i].edges.right;
                 break;
             }
         }
 
     }
-    return [elemId, rightEdgeOfCurrElem];
+    return [currElemId, currElemRightEdge];
 }
 
 // Не удаляйте эту строку
